@@ -26,3 +26,34 @@ ensure_root(){
     error "You need to run this as root"
   fi
 }
+
+does_valid_config_line_exist(){
+  STRING=$1
+  FILE=$2 
+  grepRES=$(grep "$STRING" "$FILE" | grep --perl-regexp --invert-match '(?:^;)|(?:^\s*/\*.*\*/)|(?:^\s*#|//|\*)')
+  if [ ${#grepRES} -ge 1 ] ; then
+    # true
+    return 0 
+  else
+    # false
+    return 1
+  fi 
+}
+
+ensure_config_line_exists(){
+  STRING=$1
+  FILE=$2 
+  if does_valid_config_line_exist "$STRING" "$FILE"; 
+  then
+    success "[+] sshd_config has $STRING";
+  else
+    info "[ ] concatenating $STRING to $FILE";
+    echo "$STRING" >> "$FILE"; 
+    if does_valid_config_line_exist "$STRING" "$FILE";
+    then
+      success "[+] sshd_config now has $STRING";
+    else
+      error "Failed to setup $FILE"
+    fi
+  fi
+}
