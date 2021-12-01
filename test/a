@@ -1,0 +1,14 @@
+a=44444
+ssh -f -N -D${a} localhost 2>/dev/null
+
+if curl -sL --fail --socks5 localhost:"${a}" http://google.com -o /dev/null; then
+    echo "Success"
+else
+    echo "Fail - $0"
+fi
+
+if curl -sL -m 1 --fail --socks5 localhost:80 http://google.com -o /dev/null; then
+    echo "Fail - $0"
+else
+    echo "Success"
+fi

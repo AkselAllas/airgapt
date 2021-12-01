@@ -1,0 +1,10 @@
+if systemctl status ssh.service | grep -q "Active: active"; then
+    echo "Success"
+else
+    echo "Fail - $0"
+fi
+if systemctl status ssh.service | grep -q "Xctive: active"; then
+    echo "Fail - $0"
+else
+    echo "Success"
+fi
