@@ -30,7 +30,13 @@ test_sshd_service(){
   if systemctl status ssh.service | grep -q "Active: active"; then
       success "[+] ssh server working"
   else
-      error "[-] ssh.service isn't active"
+      info "[+] restarted ssh.service"
+      systemctl restart ssh.service
+      if systemctl status ssh.service | grep -q "Active: active"; then
+          success "[+] ssh server working"
+      else
+         error "[-] ssh.service isn't active"
+      fi
   fi
 }
 
