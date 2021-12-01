@@ -10,7 +10,7 @@ install_openssh_server(){
     info "[ ] Installing openssh-server";
     set -x
     apt-get install -y openssh-server
-    unset -x
+    set +x
     success "[+] Openssh-server install succeeded";
   fi
 }
@@ -28,7 +28,7 @@ test_sshd_service(){
   fi
   
   if systemctl status ssh.service | grep -q "Active: active"; then
-      success "[+] ssh server restarted and working"
+      success "[+] ssh server working"
   else
       error "[-] ssh.service isn't active"
   fi
@@ -43,38 +43,14 @@ setup_sshd_config(){
     set -x
     systemctl restart ssh.socket
     systemctl start ssh.service
-    unset -x
+    set +x
   fi
   test_sshd_service
 }
 
-test_ssh_socks_proxy(){
-  if curl -sL --fail --socks5 localhost:"${PORT}" http://google.com -o /dev/null; then
-    success "[+] SOCKS proxy working correctly"
-  else
-    error "[ ] SOCKS proxy setup failed" 
-  fi
-}
-
-create_ssh_socks_proxy(){
-  info "[ ] Creating local SOCKS proxy to ${LOCAL_USER}@localhost (Allows dynamic outgoing port from airgapped server)";
-  set -x
-  ssh -f -N -D${PORT} ${SSH_KEY_ARGUMENT} ${LOCAL_USER}@localhost
-  unset -x
-  test_ssh_socks_proxy
-}
-
-ensure_ssh_socks_proxy_is_up(){
-  if curl -sL --fail --socks5 localhost:"${PORT}" http://google.com -o /dev/null; then
-    success "[+] SOCKS proxy working correctly"
-  else
-    create_ssh_socks_proxy
-  fi
-}
 
 install_openssh_server
 setup_sshd_config
-ensure_ssh_socks_proxy_is_up
 
 
 

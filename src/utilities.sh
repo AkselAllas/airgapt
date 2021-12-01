@@ -50,7 +50,7 @@ ensure_ssh_config_line_exists(){
     info "[ ] adding $STRING";
     set -x
     echo "$STRING" >> "$FILE"; 
-    unset -x
+    set +x
     if does_valid_config_line_exist "$STRING" "$FILE";
     then
       success "[+] sshd_config now has $STRING";
