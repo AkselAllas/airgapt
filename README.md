@@ -1,4 +1,6 @@
-# Airgapt - proxy for package management of airgapped Ubuntu
+# Airgapt - airgapped apt 
+
+Proxy for package management of airgapped Ubuntu via socks5 & ssh proxy.
 
 ᵃˡˡᵉᵍᵉᵈˡʸ
 
