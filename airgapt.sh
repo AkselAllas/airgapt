@@ -20,3 +20,4 @@ print_title airgapt
 
 source src/setupDependencies.sh
 source src/localProxySetup.sh
+source src/remoteProxySetup.sh
