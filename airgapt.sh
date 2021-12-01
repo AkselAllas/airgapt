@@ -2,17 +2,19 @@
 set -e
 set -u
 
+#### VARIABLES TO CHANGE ####
+SOCKS_PORT=44444
+LOCAL_USER="kali"
+SSH_KEY_ARGUMENT=""
+TARGET="changeme"
+TARGET_USER="ubuntu"
+TARGET_PORT="6666"
+#############################
+
 error(){
   printf "${RED}$1\n"
   exit
 }
-
-SOCKS_PORT=44444
-LOCAL_USER="aksel"
-SSH_KEY_ARGUMENT=""
-TARGET=""
-TARGET_USER="ubuntu"
-TARGET_PORT="6666"
 
 source src/utilities.sh
 ensure_root
