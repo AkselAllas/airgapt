@@ -4,11 +4,12 @@ set -u
 
 #### VARIABLES TO CHANGE ###################################################################
 SOCKS_PORT=44444
-LOCAL_USER="kali"
-TARGET="changeme.domain"
+LOCAL_USER="user"
+TARGET="example.domain"
 TARGET_USER="ubuntu"
 TARGET_PORT="6666"
-SSH_KEY_ARGUMENT="" #in format of "-i ~/.ssh/custom_key"
+LOCAL_SSH_KEY_ARGUMENT="" #in format of "-i ~/.ssh/custom_key"
+REMOTE_SSH_KEY_ARGUMENT="-i ~/.ssh/custom_key" #in format of "-i ~/.ssh/custom_key"
 ############################################################################################
 
 #Next lines are function definitions for ~200 lines.
@@ -32,7 +33,7 @@ success(){
   printf "${GREEN}$1$NC\n"
 }
 print_title(){
-  printf ${BLUE}"-=//=- $GREEN$1 ${BLUE}-=//=-$NC\n"
+  printf ${BLUE}"-=//=-  $GREEN$1${BLUE}  -=//=-$NC\n"
 }
 
 ensure_root(){
@@ -79,7 +80,7 @@ ensure_ssh_config_line_exists(){
   fi
 }
 install_openssh_server(){
-  if dpkg --list | grep -q openssh-server
+  if echo $(which sshd) | grep -q "/"
   then
     success "[+] Openssh-server already installed";
   else
@@ -93,6 +94,7 @@ install_openssh_server(){
 test_sshd_service(){
   if systemctl status ssh.service | grep -q "masked"; then
       error "[-] SSH service is masked, you need to unmask it.
+
       e.g run:
         systemctl unmask ssh.service
         systemctl enable ssh.service
@@ -138,9 +140,9 @@ test_ssh_socks_proxy(){
 }
 
 create_ssh_socks_proxy(){
-  info "[ ] Creating local SOCKS proxy to ${LOCAL_USER}@localhost (Allows dynamic outgoing port from airgapped server)";
+  info "[ ] Creating local SOCKS proxy to ${LOCAL_USER}@localhost (Allows dynamic outgoing IP & port from airgapped server)";
   set -x
-  ssh -f -N -D${SOCKS_PORT} ${SSH_KEY_ARGUMENT} ${LOCAL_USER}@localhost
+  ssh -f -N -D${SOCKS_PORT} ${LOCAL_SSH_KEY_ARGUMENT} ${LOCAL_USER}@localhost
   set +x
   test_ssh_socks_proxy
 }
@@ -154,15 +156,15 @@ ensure_ssh_socks_proxy_is_up(){
 }
 
 ensure_remote_ssh_forward_is_up(){
-  SSH_FORWARD_UP=$(ssh ${SSH_KEY_ARGUMENT} ${TARGET_USER}@${TARGET} "sudo ss -tulpna | grep 127.0.0.1:${TARGET_PORT} | grep LISTEN | wc -l")
+  SSH_FORWARD_UP=$(ssh ${REMOTE_SSH_KEY_ARGUMENT} ${TARGET_USER}@${TARGET} "sudo ss -tulpna | grep 127.0.0.1:${TARGET_PORT} | grep LISTEN | wc -l")
   if [ $SSH_FORWARD_UP = 1 ]; then
     success "[+] Remote SSH already forwarded"
   else
     info "[ ] Creating remote SSH forward to ${TARGET_USER}@${TARGET} -R${TARGET_PORT}:localhost:${SOCKS_PORT}";
     set -x
-    ssh ${SSH_KEY_ARGUMENT} ${TARGET_USER}@${TARGET} -f -N -R${TARGET_PORT}:localhost:${SOCKS_PORT} 2>/dev/null
+    ssh ${REMOTE_SSH_KEY_ARGUMENT} ${TARGET_USER}@${TARGET} -f -N -R${TARGET_PORT}:localhost:${SOCKS_PORT} 2>/dev/null
     set +x
-    SSH_FORWARD_UP=$(ssh ${SSH_KEY_ARGUMENT} ${TARGET_USER}@${TARGET} "sudo ss -tulpna | grep 127.0.0.1:${TARGET_PORT} | grep LISTEN | wc -l")
+    SSH_FORWARD_UP=$(ssh ${REMOTE_SSH_KEY_ARGUMENT} ${TARGET_USER}@${TARGET} "sudo ss -tulpna | grep 127.0.0.1:${TARGET_PORT} | grep LISTEN | wc -l")
     if [ $SSH_FORWARD_UP = 1 ]; then
       success "[+] Remote SSH forward successfully made"
     else
@@ -175,7 +177,7 @@ ensure_remote_ssh_forward_is_up(){
 
 #### REMOTE PROXY FUNCTIONS ################################################################
 ensure_remote_server_has_proxy_config(){
-ssh -t ${SSH_KEY_ARGUMENT} ${TARGET_USER}@${TARGET} <<:
+ssh_output=$(ssh -q ${REMOTE_SSH_KEY_ARGUMENT} ${TARGET_USER}@${TARGET} <<:
 sudo su
 cat <<EOT > /etc/apt/apt.conf.d/proxy.conf 
 Acquire {
@@ -184,15 +186,18 @@ Acquire {
 }
 EOT
 :
+)
+success "[+] Remote server has proxy config"
 }
 ############################################################################################
 
 
 #### MAIN ##################################################################################
 ensure_root
-print_title airgapt
+print_title "airgapt start"
 install_openssh_server
 setup_sshd_config
 ensure_ssh_socks_proxy_is_up
 ensure_remote_ssh_forward_is_up
-ensure_remote_server_has_proxy_config
+ensure_remote_server_has_proxy_config 
+print_title "airgapt finish"

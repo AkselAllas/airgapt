@@ -1,0 +1,5 @@
+if echo $(which sshd) | grep -q "/"; then
+    echo "Success"
+else
+    echo "Fail - $0"
+fi
