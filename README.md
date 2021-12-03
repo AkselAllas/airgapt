@@ -46,7 +46,7 @@ TARGET_FORWARDED_PORT="6666"
 LOCAL_SSH_KEY_PATH="/home/${LOCAL_USER}/.ssh/id_rsa"
 REMOTE_SSH_KEY_PATH="/home/${LOCAL_USER}/.ssh/custom_key"
 ```
-2) Run `.airgapth.sh`
+2) Run `.airgapt.sh`
 
 ## Custom proxy queries
 In your target machine you can use proxy to request arbitrary URLs. For that run
