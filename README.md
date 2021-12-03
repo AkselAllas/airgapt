@@ -1,17 +1,50 @@
 # Airgapt - airgapped apt 
 
-Script for setup of Proxy for package management of airgapped Ubuntu via socks5 & ssh proxy. ᵃˡˡᵉᵍᵉᵈˡʸ
+Script for setup of Proxy for package management of airgapped Ubuntu (apt) via socks5 & ssh proxy.
 
-### Usage
+## Usage
+Use either: 
 
-1) Clone repository `git clone git@github.com:AkselAllas/airgapt.git`
-2) Edit `airgapt.sh` values of:
+--) Docker image & use `runDocker.sh`
+
+--) Bash script & use `airgapt.sh`
+
+### Docker usage 
+
+Make sure you have docker installed
+
+0) `wget https://raw.githubusercontent.com/AkselAllas/airgapt/master/runDocker.sh`
+
+1) Edit `runDocker.sh` input variables
 ```
-SOCKS_PORT=44444
-LOCAL_USER="kali"
-SSH_KEY_ARGUMENT=""
-TARGET="changeme"
+LOCAL_SOCKS_PORT=44444
+LOCAL_USER="kali" #This user must match your LOCAL_SSH_KEY's owner
+LOCAL_USER_ID=1000
+TARGET="example.domain"
 TARGET_USER="ubuntu"
-TARGET_PORT="6666"
+TARGET_FORWARDED_PORT="6666"
+LOCAL_SSH_KEY_PATH="/home/${LOCAL_USER}/.ssh/id_rsa"
+REMOTE_SSH_KEY_PATH="/home/${LOCAL_USER}/.ssh/custom_key"
 ```
-3) `sudo ./airgapt.sh`
+2) Run `./runDocker.sh`
+
+### Bash script
+
+0) `wget https://raw.githubusercontent.com/AkselAllas/airgapt/master/airgapt.sh`
+
+1) Edit `airgapt.sh` input variables
+```
+LOCAL_SOCKS_PORT=44444
+LOCAL_USER="kali"
+TARGET="example.domain"
+TARGET_USER="ubuntu"
+TARGET_FORWARDED_PORT="6666"
+LOCAL_SSH_KEY_PATH="/home/${LOCAL_USER}/.ssh/id_rsa"
+REMOTE_SSH_KEY_PATH="/home/${LOCAL_USER}/.ssh/custom_key"
+```
+2) Run `.airgapth.sh`
+
+## Custom proxy queries
+In your target machine you can use proxy to request arbitrary URLs. For that run
+```
+curl -L --socks5 localhost:6666 google.com
