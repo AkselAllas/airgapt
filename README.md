@@ -4,14 +4,16 @@ Script for setup of package management Proxy for situations where you can ssh, b
 
 Uses socks5 & ssh proxy.
 
+After running the script you can also query arbitrary URLs via `curl -L --socks5 localhost:6666 google.com`
+
 <img src="https://user-images.githubusercontent.com/26136082/144587454-c442d3b1-525a-49c9-88cb-07b7742b84d5.png" alt="drawing" width="450"/>
 
 ## Usage
 Choose **one** of these: 
 
---) Docker image & use `runDocker.sh`
+--) Docker usage via `runDocker.sh`
 
---) Bash script & use `airgapt.sh`
+--) Bash usage via `airgapt.sh`
 
 ### Docker usage 
 
