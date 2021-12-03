@@ -8,8 +8,8 @@ LOCAL_USER="user"
 TARGET="example.domain"
 TARGET_USER="ubuntu"
 TARGET_FORWARDED_PORT="6666"
-LOCAL_SSH_KEY_PATH="/home/user/.ssh/id_rsa"
-REMOTE_SSH_KEY_PATH="/home/user/.ssh/custom_key"
+LOCAL_SSH_KEY_PATH="/home/${LOCAL_USER}/.ssh/id_rsa"
+REMOTE_SSH_KEY_PATH="/home/${LOCAL_USER}/.ssh/custom_key_for_remote_server"
 ############################################################################################
 
 #Next lines are function definitions for ~200 lines.
@@ -133,6 +133,27 @@ setup_sshd_config(){
 
 
 #### LOCAL PROXY FUNCTIONS #################################################################
+ensure_local_authorized_keys_is_fine(){
+  if $(cat "${LOCAL_SSH_KEY_PATH}.pub" | xargs -I{} grep -q {} "/home/${LOCAL_USER}/.ssh/authorized_keys"); then
+    success "[+] ${LOCAL_SSH_KEY_PATH}.pub is in authorized keys"
+  else
+    info "[ ] Concatenating ${LOCAL_SSH_KEY_PATH}.pub to /home/${LOCAL_USER}/.ssh/authorized_keys"
+    read -p "Are you sure you want to add ${LOCAL_SSH_KEY_PATH}.pub to /home/${LOCAL_USER}/.ssh/authorized_keys (y/n)?" choice
+    case "$choice" in 
+      y|Y ) 
+            set -x
+            cat "${LOCAL_SSH_KEY_PATH}.pub" >> "/home/${LOCAL_USER}/.ssh/authorized_keys"
+            set +x
+            if $(cat "${LOCAL_SSH_KEY_PATH}.pub" | xargs -I{} grep -q {} "/home/${LOCAL_USER}/.ssh/authorized_keys"); then
+              success "[+] ${LOCAL_SSH_KEY_PATH}.pub is in authorized keys"
+            fi;;
+      n|N ) 
+            echo "skipping";;
+      * ) 
+            echo "invalid - skipping";;
+    esac
+  fi
+}
 test_ssh_socks_proxy(){
   if curl -sL --fail --socks5 localhost:"${LOCAL_SOCKS_PORT}" http://google.com -o /dev/null; then
     success "[+] SOCKS proxy working correctly"
@@ -140,7 +161,6 @@ test_ssh_socks_proxy(){
     error "[ ] SOCKS proxy setup failed"
   fi
 }
-
 create_ssh_socks_proxy(){
   info "[ ] Creating local SOCKS proxy to ${LOCAL_USER}@localhost (Allows dynamic outgoing IP & port from airgapped server)";
   set -x
@@ -148,7 +168,6 @@ create_ssh_socks_proxy(){
   set +x
   test_ssh_socks_proxy
 }
-
 ensure_ssh_socks_proxy_is_up(){
   if curl -sL --fail --socks5 localhost:"${LOCAL_SOCKS_PORT}" http://google.com -o /dev/null; then
     success "[+] SOCKS proxy working correctly"
@@ -199,6 +218,7 @@ ensure_root
 print_title "airgapt start"
 install_openssh_server
 setup_sshd_config
+ensure_local_authorized_keys_is_fine
 ensure_ssh_socks_proxy_is_up
 ensure_remote_ssh_forward_is_up
 ensure_remote_server_has_proxy_config 
