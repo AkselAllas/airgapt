@@ -1,0 +1,7 @@
+ss -tulpna | grep -q ":22"
+while [ $? -gt 0 ]
+do
+  sleep 0.1
+  ss -tulpna | grep -q ":22"
+done
+echo "Success"
