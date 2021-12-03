@@ -1,6 +1,6 @@
 # Airgapt - "airgapped" apt 
 
-Script for setup of package management Proxy for situations where you can ssh, but target doesn't have network. 
+Script for setup of package management Proxy for situations where you can ssh, but target doesn't have an outgoing network connection to public web. 
 
 Uses socks5 & ssh proxy.
 
