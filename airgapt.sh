@@ -4,12 +4,12 @@ set -u
 
 #### VARIABLES TO CHANGE ###################################################################
 LOCAL_SOCKS_PORT=44444
-LOCAL_USER="user"
+LOCAL_USER="kali"
 TARGET="example.domain"
 TARGET_USER="ubuntu"
 TARGET_FORWARDED_PORT="6666"
 LOCAL_SSH_KEY_PATH="/home/${LOCAL_USER}/.ssh/id_rsa"
-REMOTE_SSH_KEY_PATH="/home/${LOCAL_USER}/.ssh/custom_key_for_remote_server"
+REMOTE_SSH_KEY_PATH="/home/${LOCAL_USER}/.ssh/custom_key"
 ############################################################################################
 
 #Next lines are function definitions for ~200 lines.

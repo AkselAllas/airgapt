@@ -4,13 +4,13 @@ set -u
 
 #### VARIABLES TO CHANGE ###################################################################
 LOCAL_SOCKS_PORT=44444
-LOCAL_USER="aksel" #This user must match your LOCAL_SSH_KEY's permissions
+LOCAL_USER="kali" #This user must match your LOCAL_SSH_KEY's permissions
 LOCAL_USER_ID=1000
-TARGET="ec2-54-74-184-145.eu-west-1.compute.amazonaws.com"
+TARGET="example.domain"
 TARGET_USER="ubuntu"
 TARGET_FORWARDED_PORT="6666"
-LOCAL_SSH_KEY_PATH="/home/aksel/.ssh/id_rsa"
-REMOTE_SSH_KEY_PATH="/home/aksel/.ssh/awsKaksel.pem"
+LOCAL_SSH_KEY_PATH="/home/${LOCAL_USER}/.ssh/id_rsa"
+REMOTE_SSH_KEY_PATH="/home/${LOCAL_USER}/.ssh/customKey.pem"
 ############################################################################################
 
 LOCAL_SSH_KEY_ARGUMENT="-i ${LOCAL_SSH_KEY_PATH}" 
