@@ -55,5 +55,15 @@ In your target machine you can use proxy to request arbitrary URLs. For that run
 ```
 curl -L --socks5 localhost:6666 google.com
 ```
+You can also optionally install [proxychains](http://proxychains.sourceforge.net/) on the target server to enable any software to use the forwarded SOCKS proxy 
+It uses a LD_PRELOAD trick to redirect TCP and DNS requests from arbitrary commands into a proxy and is really handy.
+
+Setup `/etc/proxychains.conf` to use the forwarded socks proxy:
+```
+[ProxyList]
+# SSH reverse proxy
+socks5  127.0.0.1 6666
+```
+e.g. `proxychains yum update`
 ### Future plans
 [ ] add yum, pac, pkg detection & proxy setup to `ensure_remote_server_has_proxy_config()` function
