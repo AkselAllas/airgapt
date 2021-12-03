@@ -3,13 +3,13 @@ set -e
 set -u
 
 #### VARIABLES TO CHANGE ###################################################################
-SOCKS_PORT=44444
+LOCAL_SOCKS_PORT=44444
 LOCAL_USER="user"
 TARGET="example.domain"
 TARGET_USER="ubuntu"
-TARGET_PORT="6666"
-LOCAL_SSH_KEY_ARGUMENT="" #in format of "-i ~/.ssh/custom_key"
-REMOTE_SSH_KEY_ARGUMENT="-i ~/.ssh/custom_key" #in format of "-i ~/.ssh/custom_key"
+TARGET_FORWARDED_PORT="6666"
+LOCAL_SSH_KEY_PATH="/home/user/.ssh/id_rsa"
+REMOTE_SSH_KEY_PATH="/home/user/.ssh/custom_key"
 ############################################################################################
 
 #Next lines are function definitions for ~200 lines.
@@ -21,6 +21,8 @@ RED="${C}[1;31m"
 BLUE="${C}[1;34m"
 GREEN="${C}[1;32m"
 NC="${C}[0m"
+LOCAL_SSH_KEY_ARGUMENT="-i ${LOCAL_SSH_KEY_PATH}" 
+REMOTE_SSH_KEY_ARGUMENT="-i ${REMOTE_SSH_KEY_PATH}" 
 
 error(){
   printf "${RED}$1\n"
@@ -132,7 +134,7 @@ setup_sshd_config(){
 
 #### LOCAL PROXY FUNCTIONS #################################################################
 test_ssh_socks_proxy(){
-  if curl -sL --fail --socks5 localhost:"${SOCKS_PORT}" http://google.com -o /dev/null; then
+  if curl -sL --fail --socks5 localhost:"${LOCAL_SOCKS_PORT}" http://google.com -o /dev/null; then
     success "[+] SOCKS proxy working correctly"
   else
     error "[ ] SOCKS proxy setup failed"
@@ -142,13 +144,13 @@ test_ssh_socks_proxy(){
 create_ssh_socks_proxy(){
   info "[ ] Creating local SOCKS proxy to ${LOCAL_USER}@localhost (Allows dynamic outgoing IP & port from airgapped server)";
   set -x
-  ssh -f -N -D${SOCKS_PORT} ${LOCAL_SSH_KEY_ARGUMENT} ${LOCAL_USER}@localhost
+  ssh -f -N -D${LOCAL_SOCKS_PORT} ${LOCAL_SSH_KEY_ARGUMENT} ${LOCAL_USER}@localhost
   set +x
   test_ssh_socks_proxy
 }
 
 ensure_ssh_socks_proxy_is_up(){
-  if curl -sL --fail --socks5 localhost:"${SOCKS_PORT}" http://google.com -o /dev/null; then
+  if curl -sL --fail --socks5 localhost:"${LOCAL_SOCKS_PORT}" http://google.com -o /dev/null; then
     success "[+] SOCKS proxy working correctly"
   else
     create_ssh_socks_proxy
@@ -156,19 +158,19 @@ ensure_ssh_socks_proxy_is_up(){
 }
 
 ensure_remote_ssh_forward_is_up(){
-  SSH_FORWARD_UP=$(ssh ${REMOTE_SSH_KEY_ARGUMENT} ${TARGET_USER}@${TARGET} "sudo ss -tulpna | grep 127.0.0.1:${TARGET_PORT} | grep LISTEN | wc -l")
+  SSH_FORWARD_UP=$(ssh ${REMOTE_SSH_KEY_ARGUMENT} ${TARGET_USER}@${TARGET} "sudo ss -tulpna | grep 127.0.0.1:${TARGET_FORWARDED_PORT} | grep LISTEN | wc -l")
   if [ $SSH_FORWARD_UP = 1 ]; then
     success "[+] Remote SSH already forwarded"
   else
-    info "[ ] Creating remote SSH forward to ${TARGET_USER}@${TARGET} -R${TARGET_PORT}:localhost:${SOCKS_PORT}";
+    info "[ ] Creating remote SSH forward to ${TARGET_USER}@${TARGET} -R${TARGET_FORWARDED_PORT}:localhost:${LOCAL_SOCKS_PORT}";
     set -x
-    ssh ${REMOTE_SSH_KEY_ARGUMENT} ${TARGET_USER}@${TARGET} -f -N -R${TARGET_PORT}:localhost:${SOCKS_PORT} 2>/dev/null
+    ssh ${REMOTE_SSH_KEY_ARGUMENT} ${TARGET_USER}@${TARGET} -f -N -R${TARGET_FORWARDED_PORT}:localhost:${LOCAL_SOCKS_PORT} 2>/dev/null
     set +x
-    SSH_FORWARD_UP=$(ssh ${REMOTE_SSH_KEY_ARGUMENT} ${TARGET_USER}@${TARGET} "sudo ss -tulpna | grep 127.0.0.1:${TARGET_PORT} | grep LISTEN | wc -l")
+    SSH_FORWARD_UP=$(ssh ${REMOTE_SSH_KEY_ARGUMENT} ${TARGET_USER}@${TARGET} "sudo ss -tulpna | grep 127.0.0.1:${TARGET_FORWARDED_PORT} | grep LISTEN | wc -l")
     if [ $SSH_FORWARD_UP = 1 ]; then
       success "[+] Remote SSH forward successfully made"
     else
-      error "[-] Remote SSH forward to ${TARGET_USER}@${TARGET} -R${TARGET_PORT}:localhost:${SOCKS_PORT} failed"
+      error "[-] Remote SSH forward to ${TARGET_USER}@${TARGET} -R${TARGET_FORWARDED_PORT}:localhost:${LOCAL_SOCKS_PORT} failed"
     fi
   fi
 }
@@ -179,10 +181,10 @@ ensure_remote_ssh_forward_is_up(){
 ensure_remote_server_has_proxy_config(){
 ssh_output=$(ssh -q ${REMOTE_SSH_KEY_ARGUMENT} ${TARGET_USER}@${TARGET} <<:
 sudo su
-cat <<EOT > /etc/apt/apt.conf.d/proxy.conf 
+cat <<EOT > /etc/apt/apt.conf.d/airgapt_proxy.conf 
 Acquire {
-  HTTP::proxy "socks5h://127.0.0.1:$TARGET_PORT";
-  HTTPS::proxy "socks5h://127.0.0.1:$TARGET_PORT";
+  HTTP::proxy "socks5h://127.0.0.1:$TARGET_FORWARDED_PORT";
+  HTTPS::proxy "socks5h://127.0.0.1:$TARGET_FORWARDED_PORT";
 }
 EOT
 :
