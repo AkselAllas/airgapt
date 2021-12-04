@@ -1,4 +1,4 @@
-# Airgapt - "airgapped" apt <sup><sub>_ᵃˡˡᵉᵍᵉᵈˡʸ*_</sub></sup>
+# Airgapt - "airgapped" apt <sup><sub>*</sub></sup>
 
 Script for setup of package management Proxy for situations where you can ssh, but target doesn't have an outgoing network connection to public web. 
 
