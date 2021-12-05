@@ -119,7 +119,6 @@ test_sshd_service(){
 setup_sshd_config(){
   RESTART_SSH="false"
   ensure_ssh_config_line_exists 'AllowTcpForwarding yes' '/etc/ssh/sshd_config'
-  ensure_ssh_config_line_exists 'GatewayPorts yes' '/etc/ssh/sshd_config'
   if [ $RESTART_SSH = "true" ] ; then
     info "[ ] Restarting SSH"
     set -x
