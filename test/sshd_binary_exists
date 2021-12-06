@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+if whereis -b sshd|awk -F: '{print $2}'|awk '{print $1}' | grep -q '/'; then
+    echo "Success"
+else
+    echo "Fail - $0"
+fi

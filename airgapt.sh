@@ -40,7 +40,7 @@ print_title(){
 
 ensure_root(){
   if ([ -f /usr/bin/id ] && [ "$(/usr/bin/id -u)" -eq "0" ]) || [ "$(whoami 2>/dev/null)" = "root" ]; then
-    IAMROOT="1"
+    export IAMROOT="1"
   else
     error "You need to run this as root"
   fi
@@ -82,7 +82,7 @@ ensure_ssh_config_line_exists(){
   fi
 }
 install_openssh_server(){
-  if echo $(which sshd) | grep -q "/"
+  if whereis -b sshd|awk -F: '{print $2}'|awk '{print $1}' | grep -q '/'
   then
     success "[+] Openssh-server already installed";
   else
@@ -133,7 +133,7 @@ setup_sshd_config(){
 
 #### LOCAL PROXY FUNCTIONS #################################################################
 ensure_local_authorized_keys_is_fine(){
-  if $(cat "${LOCAL_SSH_KEY_PATH}.pub" | xargs -I{} grep -q {} "/home/${LOCAL_USER}/.ssh/authorized_keys"); then
+  if cat "${LOCAL_SSH_KEY_PATH}.pub" | xargs -I{} grep -q {} "/home/${LOCAL_USER}/.ssh/authorized_keys"; then
     success "[+] ${LOCAL_SSH_KEY_PATH}.pub is in authorized keys"
   else
     info "[ ] Concatenating ${LOCAL_SSH_KEY_PATH}.pub to /home/${LOCAL_USER}/.ssh/authorized_keys"
@@ -143,7 +143,7 @@ ensure_local_authorized_keys_is_fine(){
             set -x
             cat "${LOCAL_SSH_KEY_PATH}.pub" >> "/home/${LOCAL_USER}/.ssh/authorized_keys"
             set +x
-            if $(cat "${LOCAL_SSH_KEY_PATH}.pub" | xargs -I{} grep -q {} "/home/${LOCAL_USER}/.ssh/authorized_keys"); then
+            if cat "${LOCAL_SSH_KEY_PATH}.pub" | xargs -I{} grep -q {} "/home/${LOCAL_USER}/.ssh/authorized_keys"; then
               success "[+] ${LOCAL_SSH_KEY_PATH}.pub is in authorized keys"
             fi;;
       n|N ) 
@@ -197,7 +197,7 @@ ensure_remote_ssh_forward_is_up(){
 
 #### REMOTE PROXY FUNCTIONS ################################################################
 ensure_remote_server_has_proxy_config(){
-ssh_output=$(ssh -q ${REMOTE_SSH_KEY_ARGUMENT} ${TARGET_USER}@${TARGET} <<:
+ssh_output=$(ssh -q ${REMOTE_SSH_KEY_ARGUMENT} ${TARGET_USER}@${TARGET} <<":"
 sudo su
 cat <<EOT > /etc/apt/apt.conf.d/airgapt_proxy.conf 
 Acquire {
@@ -206,7 +206,7 @@ Acquire {
 }
 EOT
 :
-)
+) ; echo $ssh_output > /dev/null
 success "[+] Remote server has proxy config"
 }
 ############################################################################################

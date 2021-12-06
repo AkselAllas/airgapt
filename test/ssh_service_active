@@ -1,3 +1,4 @@
+#!/usr/bin/env bash
 if systemctl status ssh.service | grep -q "Active: active"; then
     echo "Success"
 else

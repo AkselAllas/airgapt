@@ -1,16 +1,17 @@
+#!/usr/bin/env bash
 LOCAL_USER="aksel"
 LOCAL_SSH_KEY_PATH="/home/${LOCAL_USER}/.ssh/id_rsa"
 AUTH_KEY_MOCK="/tmp/authorized_keys"
-rm ${AUTH_KEY_MOCK} ; touch ${AUTH_KEY_MOCK}
+rm ${AUTH_KEY_MOCK} 2>/dev/null ; touch ${AUTH_KEY_MOCK}
 
-if $(cat "${LOCAL_SSH_KEY_PATH}.pub" | xargs -I{} grep -q {} "${AUTH_KEY_MOCK}"); then
+if cat "${LOCAL_SSH_KEY_PATH}.pub" | xargs -I{} grep -q {} "${AUTH_KEY_MOCK}"; then
     echo "Fail - $0"
 else
     echo "Success"
 fi
 
 cat "${LOCAL_SSH_KEY_PATH}.pub" >> "${AUTH_KEY_MOCK}"
-if $(cat "${LOCAL_SSH_KEY_PATH}.pub" | xargs -I{} grep -q {} "${AUTH_KEY_MOCK}"); then
+if cat "${LOCAL_SSH_KEY_PATH}.pub" | xargs -I{} grep -q {} "${AUTH_KEY_MOCK}"; then
     echo "Success"
 else
     echo "Fail - $0"

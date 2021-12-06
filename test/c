@@ -1,8 +1,0 @@
-PORT=44444
-ssh -f -N -D${PORT} localhost 2>/dev/null
-
-if systemctl status ssh.service | ss -tulpna | grep -q ${PORT}; then
-    echo "Success"
-else
-    echo "Fail - $0"
-fi

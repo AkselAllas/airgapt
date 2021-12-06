@@ -30,7 +30,7 @@ print_title(){
 
 ensure_root(){
   if ([ -f /usr/bin/id ] && [ "$(/usr/bin/id -u)" -eq "0" ]) || [ "$(whoami 2>/dev/null)" = "root" ]; then
-    IAMROOT="1"
+    export IAMROOT="1"
   else
     error "You need to run this as root"
   fi
@@ -83,7 +83,7 @@ ensure_remote_ssh_forward_is_up(){
 
 #### REMOTE PROXY FUNCTIONS ################################################################
 ensure_remote_server_has_proxy_config(){
-ssh_output=$(ssh -q ${REMOTE_SSH_KEY_ARGUMENT} ${TARGET_USER}@${TARGET} <<:
+ssh_output=$(ssh -q ${REMOTE_SSH_KEY_ARGUMENT} ${TARGET_USER}@${TARGET} <<":"
 sudo su
 cat <<EOT > /etc/apt/apt.conf.d/airgapt_proxy.conf 
 Acquire {
@@ -92,7 +92,7 @@ Acquire {
 }
 EOT
 :
-)
+) ; echo $ssh_output > /dev/null
 success "[+] Remote server has proxy config"
 }
 ############################################################################################
